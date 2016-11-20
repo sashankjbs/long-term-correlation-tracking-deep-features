@@ -32,12 +32,16 @@ for i = 1:num_files
         xk = computeGaussianCorrelation(x, x, kernel_width);
         xkf = fft2(xk);
         
+        [size_x, size_y, ~] = size(x);
+        
         yf = getLabelImage(size_x, size_y, 20);
         
         % Equation 2
         A = yf./(xkf + lambda);
     else
-        pos = getNewPos(img, pos, patch_size, x, A);
+        patch = getPatch(img, pos, patch_size);
+        z = computeFeatures(patch, 4);
+        pos = getNewPos(z, x, A);
         
     end
 

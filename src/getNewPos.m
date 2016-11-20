@@ -1,7 +1,4 @@
-function [pos, max_value] = getNewPos(img, pos, patch_size, x, A)
-
-patch = getPatch(img, pos, patch_size);
-z = computeFeatures(patch, 4);
+function [pos, max_value] = getNewPos(z, x, A)
 
 global kernel_width;
 xzk = computeGaussianCorrelation(z, x, kernel_width);
