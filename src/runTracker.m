@@ -4,9 +4,10 @@ function runTracker(file_path)
 files = dir(strcat(file_path, '*.jpg'));
 num_files = length(files);
 
-global lambda = 1e-4;
-global learning_rate = 0.01;
-global kernel_width = 0.1;
+lambda = 1e-4;
+learning_rate = 0.01;
+global kernel_width;
+kernel_width = 0.1;
 
 for i = 1:num_files
     % Read the next image
@@ -42,6 +43,14 @@ for i = 1:num_files
         patch = getPatch(img, pos, patch_size);
         z = computeFeatures(patch, 4);
         pos = getNewPos(z, x, A);
+        
+        zk = computeGaussianCorrelation(z, z, kernel_width);
+        zkf = fft2(zk);
+        
+        A_z = yf./(zkf + lambda);
+        
+        x = (1 - learning_rate) * x + learning_rate * z;
+        A = (1 - learning_rate) * A + learning_rate * A_z;
         
     end
 
