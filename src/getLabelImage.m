@@ -1,4 +1,4 @@
-function [y] = getLabelImage(size_x, size_y, sigma)
+function [g] = getLabelImage(size_x, size_y, sigma)
 % Returns the Gaussian label image.
 % Since the FFT of gaussian is also a gaussian, this function can be used
 % to generate the labels and the fourier transform of the labels.

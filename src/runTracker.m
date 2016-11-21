@@ -37,7 +37,7 @@ for i = 1:num_files
         size_y = floor(size(patch, 1)/cell_size);
         size_x = floor(size(patch, 2)/cell_size);
         
-        label_sigma = sqrt(size_x * size_y) * label_sigma;
+        label_sigma = sqrt(size_x * size_y) * label_sigma / 2;
         yf = fft2(getLabelImage(size_x, size_y, label_sigma));
         
         cos_window = hann(size_y) * hann(size_x)';
@@ -53,14 +53,13 @@ for i = 1:num_files
         
         zf = fft2(computeFeatures(patch, cell_size, cos_window));
         diff = getNewPos(zf, xf, A)
-        pos = pos + cell_size * [diff(2) diff(1)];
-        %pos = pos + cell_size * [diff(2) - floor(size_x/2)-1, diff(1) - floor(size_y/2)-1];
+        %pos = pos + cell_size * [diff(2) diff(1)];
+        pos = pos + cell_size * [diff(2) - floor(size_x/2)-1, diff(1) - floor(size_y/2)-1];
         
         if(visualize == 1)
             imshow(img); hold on;
-            rectangle('Position', [pos, patch_size]);
+            rectangle('Position', [pos, patch_size], 'EdgeColor', 'r');
             drawnow;
-            pause(0.5);
         end
         
         zkf = computeGaussianCorrelation(zf, zf, kernel_width);
