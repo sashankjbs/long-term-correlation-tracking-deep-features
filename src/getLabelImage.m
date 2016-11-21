@@ -4,7 +4,8 @@ function [y] = getLabelImage(size_x, size_y, sigma)
 % to generate the labels and the fourier transform of the labels.
 
 % Get x, y positions
-[x, y] = meshgrid(1:size_x, 1:size_y);
+%[x, y] = meshgrid(1:size_x, 1:size_y);
+[y, x] = ndgrid(1:size_y, 1:size_x);
 
 % Make the center as the peak of the gaussian
 x = x - floor(size_x/2);
@@ -12,6 +13,10 @@ y = y - floor(size_y/2);
 
 % Use gaussian function to get the 2D gaussian image.
 % The center has the maximum value of 1.
-y = exp(-(x.^2 + y.^2)./2./sigma^2);
+g = exp(-(x.^2 + y.^2)./2./sigma^2);
+
+g = circshift(g, -floor([size_y, size_x] / 2) + 1);
+
+assert(g(1,1) == 1);
 
 end

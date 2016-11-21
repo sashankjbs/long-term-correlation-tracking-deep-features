@@ -1,14 +1,13 @@
-function [pos, max_value] = getNewPos(z, x, A)
+function [diff, max_value] = getNewPos(zf, xf, A)
 
 global kernel_width;
-xzk = computeGaussianCorrelation(z, x, kernel_width);
-xzkf = fft2(xzk);
+xzkf = computeGaussianCorrelation(zf, xf, kernel_width);
 
-y = ifft2(A.*xzkf);
+yf = fftshift(real(ifft2(A.*xzkf)));
 
-max_value = max(y(:));
+max_value = max(yf(:));
 
-[dx, dy] = find(y == max_value, 1);
-pos = pos + [dx, dy];
+[dx, dy] = find(yf == max_value, 1);
+diff = [dx, dy];
 
 end
