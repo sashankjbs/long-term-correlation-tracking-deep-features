@@ -23,8 +23,8 @@ for i = 1:num_t
 end
 
 plot(overlap_threshold, num_correct, 'r', 'LineWidth', 1);
-title('Accuracy vs OverlapThreshold');
-xlabel('OverlapThreshold');
+title('Accuracy vs Overlap Threshold');
+xlabel('Overlap Threshold');
 ylabel('Accuracy');
 hold on;
 
