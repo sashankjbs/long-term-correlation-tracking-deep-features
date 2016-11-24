@@ -5,8 +5,11 @@ function [g] = getLabelImage(size_x, size_y, sigma)
 
 % Get x, y positions
 %[x, y] = meshgrid(1:size_x, 1:size_y);
-[y, x] = ndgrid((1:size_y) - floor(size_y/2), (1:size_x) - floor(size_x/2));
+[y, x] = ndgrid(1:size_y - floor(size_y/2), 1:size_x - floor(size_x/2));
 
+% Make the center as the peak of the gaussian
+x = x - floor(size_x/2);
+y = y - floor(size_y/2);
 
 % Use gaussian function to get the 2D gaussian image.
 % The center has the maximum value of 1.
