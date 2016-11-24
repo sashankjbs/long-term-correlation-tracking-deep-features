@@ -1,18 +1,18 @@
-function [H] = computeConvFeatures(img, net)
+function [H] = computeConvFeatures(img, cell_size, cos_window, net, mean_data)
 
-global depth;
+
 input_data = {prepare_image(img)};
 
 net.forward(input_data);
 
 %H = net.blobs('conv3_3').get_data();
-if(depth == 1)
-    H = net.blobs('res2c').get_data();
-elseif(depth == 2)
-    H = net.blobs('res3d').get_data();
-end
+H = net.blobs('res2c').get_data();
 
 H = permute(H, [2, 1, 3]);
+
+if(~isempty(cos_window))
+    H = bsxfun(@times, H, cos_window);
+end
 
 end
 
@@ -21,9 +21,6 @@ function crops_data = prepare_image(im)
 % ------------------------------------------------------------------------
 % caffe/matlab/+caffe/imagenet/ilsvrc_2012_mean.mat contains mean_data that
 % is already in W x H x C with BGR channels
-global model_dir;
-global depth;
-mean_data = caffe.io.read_mean([model_dir 'ResNet_mean.binaryproto']);
 
 % Convert an image returned by Matlab's imread to im_data in caffe's data
 % format: W x H x C with BGR channels
@@ -35,10 +32,6 @@ im_data = single(im_data);  % convert from uint8 to single
 % mean(:,:,3) = repmat([122.67891434], size(im_data, 1), size(im_data, 2));
 
 im_data = permute(im_data, [2, 1, 3]);  % flip width and height
-im_size = size(im_data);
-im_data = imresize(im_data, [224 224], 'bilinear');  % resize im_data
-im_data = im_data - mean_data;
-im_data = imresize(im_data, im_size(1:2)*depth, 'bilinear');  % resize im_data
 
 %im_data = imresize(im_data, 4, 'bilinear');  % resize im_data
 % oversample (4 corners, center, and their x-axis flips)

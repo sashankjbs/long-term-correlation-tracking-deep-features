@@ -1,0 +1,19 @@
+
+GT = csvread('../data/BasketBall/groundtruth_rect.txt');
+
+ours = csvread('rects.txt');
+
+num_frames = size(GT, 2);
+
+assert(size(GT, 2) == size(ours, 2));
+
+area_overlap = rectint(GT, ours);
+area_overlap = diag(area_overlap);
+
+GT_area = GT(:,3).*GT(:,4);
+
+overlap_threshold = 0:0.01:1;
+num_t = siz
+
+for i = 
+num_correct = sum(area_overlap > GT_area.*overlap_threshold)

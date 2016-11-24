@@ -20,6 +20,8 @@ lambda_s = 0.01;
 motion_threshold = 0.15;
 appearance_threshold = 0.38;
 
+fileID = fopen('rects.txt','w');
+
 
 N = 33;
 factor = 1/4;
@@ -53,16 +55,16 @@ for i = 1:num_files
     if(i == 1)
 
         imshow(img);
-%        rect = [254 215 81 34];
-        rect = getrect;
-        close;
-        
-        temp = rect(1:2) + rect(3:4)/2;
-        rect(1) = temp(2);
-        rect(2) = temp(1);
-        tempp = rect(3);
-        rect(3) = rect(4);
-        rect(4) = tempp;
+        rect = [254 215 81 34];
+%         rect = getrect;
+%         close;
+%         
+%         temp = rect(1:2) + rect(3:4)/2;
+%         rect(1) = temp(2);
+%         rect(2) = temp(1);
+%         tempp = rect(3);
+%         rect(3) = rect(4);
+%         rect(4) = tempp;
        
         
         pos = rect(1:2);
@@ -188,8 +190,10 @@ for i = 1:num_files
         rectangle('Position', [pos([2,1]) - target_disp([2,1])/2, target_disp([2,1])], 'EdgeColor', 'r');
         drawnow;
     end
+    fprintf(fileID,'%d,%d,%d,%d\n', floor([pos([2,1]) - target_disp([2,1])/2, target_disp([2,1])]));
     avg_frame_rate = avg_frame_rate + 1/elapsed_time;
-    disp(1/elapsed_time);
+    %disp(1/elapsed_time);
 end
 
 avg_frame_rate = avg_frame_rate/num_files
+fclose(fileID);

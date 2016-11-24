@@ -2,7 +2,7 @@ clear all;
 cam = webcam(1);
 
 videoFrame = snapshot(cam);
-frameSize = size(videoFrame);
+frameSize = size(videoFrame)/2;
 
 videoPlayer = vision.VideoPlayer('Position', [100 100 [frameSize(2), frameSize(1)]+30]);
 
@@ -38,12 +38,35 @@ else
     scale_window = single(hann(N));
 end
 
+% Add path to caffe
+addpath('/Users/siddarth/Desktop/caffe/matlab');
+
+caffe.set_mode_cpu();
+
+% model_dir = '/Users/siddarth/Desktop/caffe/models/FCN/';
+% net_weights = [model_dir 'fcn32s-heavy-pascal.caffemodel'];
+% motion_proto = [model_dir 'deploy_motion.prototxt'];
+% motion_app = [model_dir 'deploy_app.prototxt'];
+global model_dir;
+model_dir = '../models/ResNet/';
+net_weights = [model_dir 'ResNet-50-model.caffemodel'];
+motion_proto = [model_dir 'ResNet-50-deploy-motion.prototxt'];
+motion_app = [model_dir 'ResNet-50-deploy-app.prototxt'];
+phase = 'test'; % run with phase test (so that dropout isn't applied)
+
+net_motion = caffe.Net(motion_proto, net_weights, phase);
+net_app = caffe.Net(motion_app, net_weights, phase);
+
+global depth;
+depth = 2;
+
 
 while(runLoop)
     img = snapshot(cam);
+    img = imresize(img, 0.5);
     imshow(img);
     rect = getrect;
-    rect = floor(rect);
+    rect = floor(rect/16)*16;
     close;
     runLoop = false;
     
@@ -68,35 +91,42 @@ while(runLoop)
         
         patch = getPatch(img, pos, motion_model_patch_size);
         
-        motion_model_output_size = [floor(size(patch,1)/cell_size) floor(size(patch,2)/cell_size)];
-        
+        net_motion.blobs('data').reshape([motion_model_patch_size(2)*depth,...
+            motion_model_patch_size(1)*depth, 3, 1]); % reshape blob 'data'
+        net_motion.reshape();
+
+        net_app.blobs('data').reshape([app_model_patch_size(2)*depth,...
+            app_model_patch_size(1)*depth, 3 1]); % reshape blob 'data'
+        net_app.reshape();
         
         label_sigma = sqrt(prod(target_size)) * label_sigma/cell_size;
         
         
         % Rc
+               
+        xf = computeConvFeatures(patch, net_motion);
+        motion_model_output_size = [size(xf, 1), size(xf,2)];
+        
         yf = fft2(getLabelImage(motion_model_output_size(2), motion_model_output_size(1),label_sigma));
         
         cos_window = hann(motion_model_output_size(1)) * hann(motion_model_output_size(2))';
         
-        xf = fft2(computeFeatures(patch, cell_size, cos_window));
+        xf = bsxfun(@times, xf, cos_window);
+        xf = fft2(xf);
+        
         xkf = computeGaussianCorrelation(xf, xf, kernel_width);
         
         % Equation 2
         A = yf./(xkf + lambda);
         
         
-            
-        %Rt
-        app_model_output_size = [floor(app_model_patch_size(1)/cell_size),...
-         floor(app_model_patch_size(2)/cell_size)];
-        
-        yf_t = fft2(getLabelImage(app_model_output_size(2),app_model_output_size(1), label_sigma));
-        
+    
    %     cos_window_t = ones(size_y_t,size_x_t);
         
         patch = getPatch(img, pos, app_model_patch_size);
-        xf_t = fft2(computeFeatures(patch, cell_size, []));
+        xf_t = fft2(computeConvFeatures(patch, net_app));
+        app_model_output_size = [size(xf_t, 1), size(xf_t,2)];
+        yf_t = fft2(getLabelImage(app_model_output_size(2),app_model_output_size(1), label_sigma));
         xkf_t = computeGaussianCorrelation(xf_t, xf_t, kernel_width);
         
         % Equation 2
@@ -116,15 +146,17 @@ runLoop = true;
 
 while(runLoop)
     img = snapshot(cam);
-    img = rgb2gray(img);
+    img = imresize(img, 0.5);
         patch = getPatch(img, pos, motion_model_patch_size);
         
-        zf = fft2(computeFeatures(patch, cell_size, cos_window));
+        zf = computeConvFeatures(patch, net_motion);
+        zf = bsxfun(@times, zf, cos_window);
+        zf = fft2(zf);
         [diff,~] = getNewPos(zf, xf, A);
         pos = pos + cell_size * [diff(1) - floor(size(zf,1)/2)-1, diff(2) - floor(size(zf,2)/2)-1];
         
         patch = getPatch(img, pos, app_model_patch_size);
-        zf_t = fft2(computeFeatures(patch, cell_size, []));
+        zf_t = fft2(computeConvFeatures(patch, net_app));
         [~,max_response] = getNewPos(zf_t, xf_t, A_t);
         
         %target
