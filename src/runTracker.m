@@ -55,16 +55,20 @@ for i = 1:num_files
     if(i == 1)
 
         imshow(img);
-        rect = [254 215 81 34];
+%        rect = [340,358,18,55];
+%        rect = [198,214,34,81];
+         rect = [180,79,37,114];
+%        rect = [254 215 81 34];
+%        rect = [340,358,18,55];
 %         rect = getrect;
 %         close;
-%         
-%         temp = rect(1:2) + rect(3:4)/2;
-%         rect(1) = temp(2);
-%         rect(2) = temp(1);
-%         tempp = rect(3);
-%         rect(3) = rect(4);
-%         rect(4) = tempp;
+        
+        temp = rect(1:2) + rect(3:4)/2;
+        rect(1) = temp(2);
+        rect(2) = temp(1);
+        tempp = rect(3);
+        rect(3) = rect(4);
+        rect(4) = tempp;
        
         
         pos = rect(1:2);

@@ -1,8 +1,9 @@
 
-GT = csvread('../data/BasketBall/groundtruth_rect.txt');
+GT = csvread('../data/Jogging/groundtruth_rect.txt');
 
-ours = csvread('rects.txt');
-ours_conv = csvread('rects_conv.txt');
+ours = csvread('../Jogging/rects.txt');
+ours_conv = csvread('../Jogging/rects_conv.txt');
+ours_hog = csvread('../Jogging/rects_hog.txt');
 
 num_frames = size(GT, 1);
 
@@ -30,3 +31,13 @@ for i = 1:num_t
 end
 
 plot(overlap_threshold, num_correct, 'b', 'LineWidth', 1);
+
+
+for i = 1:num_t
+    num_correct(i) = sum(abs(ours_hog(:,1) - GT(:,1)) <= overlap_threshold(i) &...
+        abs(ours_hog(:,2) - GT(:,2)) <= overlap_threshold(i))/num_frames;
+end
+
+plot(overlap_threshold, num_correct, 'g', 'LineWidth', 1);
+
+legend('No Detection','ResNet','HOG');
